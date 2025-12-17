@@ -80,138 +80,61 @@ const CompanyModal = ({ open, onClose, onSubmit, initialData }) => {
       okText="Save"
       confirmLoading={saving}
       destroyOnClose
-      width={800}
+      width={600}
       styles={{
         body: { maxHeight: '70vh', overflowY: 'auto' }
       }}
     >
       <Form form={form} layout="vertical">
-        <Row gutter={16}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              name="company_name"
-              label={<span style={{ fontWeight: 500 }}>Company Name</span>}
-              rules={[{ required: true, message: "Enter company name" }]}
-            >
-              <Input placeholder="e.g. Tech Innovators Inc." size="large" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item
-              name="contact_person"
-              label={<span style={{ fontWeight: 500 }}>Contact Person</span>}
-              rules={[{ required: true, message: "Enter contact person" }]}
-            >
-              <Input placeholder="e.g. John Smith" size="large" />
-            </Form.Item>
-          </Col>
-        </Row>
-
-        <Row gutter={16}>
-          <Col xs={24} md={12}>
-            <Form.Item
-              name="email"
-              label={<span style={{ fontWeight: 500 }}>Email</span>}
-              rules={[
-                { required: true, message: "Enter email" },
-                { type: "email", message: "Enter valid email" }
-              ]}
-            >
-              <Input placeholder="admin@company.com" size="large" />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={12}>
-            <Form.Item
-              name="phone"
-              label={<span style={{ fontWeight: 500 }}>Phone</span>}
-              rules={[{ required: true, message: "Enter phone number" }]}
-            >
-              <Input placeholder="+1 (555) 123-4567" size="large" />
-            </Form.Item>
-          </Col>
-        </Row>
-
         <Form.Item
-          name="address"
-          label={<span style={{ fontWeight: 500 }}>Address</span>}
-          rules={[{ required: true, message: "Enter address" }]}
+          name="company_name"
+          label={<span style={{ fontWeight: 500 }}>Company Name</span>}
+          rules={[{ required: true, message: "Enter company name" }]}
         >
-          <TextArea rows={2} placeholder="Company address..." />
+          <Input placeholder="e.g. Tech Innovators Inc." size="large" />
         </Form.Item>
 
         <Row gutter={16}>
           <Col xs={24} md={12}>
             <Form.Item
-              name="industry"
-              label={<span style={{ fontWeight: 500 }}>Industry</span>}
-              rules={[{ required: true, message: "Select industry" }]}
+              name="first_name"
+              label={<span style={{ fontWeight: 500 }}>First Name</span>}
+              rules={[{ required: true, message: "Enter first name" }]}
             >
-              <Select placeholder="Select industry" size="large">
-                {industryOptions.map((opt) => (
-                  <Option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </Option>
-                ))}
-              </Select>
+              <Input placeholder="e.g. John" size="large" />
             </Form.Item>
           </Col>
           <Col xs={24} md={12}>
             <Form.Item
-              name="website"
-              label={<span style={{ fontWeight: 500 }}>Website</span>}
+              name="last_name"
+              label={<span style={{ fontWeight: 500 }}>Last Name</span>}
+              rules={[{ required: true, message: "Enter last name" }]}
             >
-              <Input placeholder="www.company.com" size="large" />
+              <Input placeholder="e.g. Smith" size="large" />
             </Form.Item>
           </Col>
         </Row>
 
-        <Row gutter={16}>
-          <Col xs={24} md={8}>
-            <Form.Item
-              name="employee_count"
-              label={<span style={{ fontWeight: 500 }}>Employee Count</span>}
-              rules={[{ required: true, message: "Enter employee count" }]}
-            >
-              <InputNumber
-                placeholder="0"
-                size="large"
-                style={{ width: '100%' }}
-                min={1}
-              />
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={8}>
-            <Form.Item
-              name="subscription_plan"
-              label={<span style={{ fontWeight: 500 }}>Subscription Plan</span>}
-              rules={[{ required: true, message: "Select plan" }]}
-            >
-              <Select placeholder="Select plan" size="large">
-                {subscriptionPlanOptions.map((opt) => (
-                  <Option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </Option>
-                ))}
-              </Select>
-            </Form.Item>
-          </Col>
-          <Col xs={24} md={8}>
-            <Form.Item
-              name="monthly_fee"
-              label={<span style={{ fontWeight: 500 }}>Monthly Fee ($)</span>}
-              rules={[{ required: true, message: "Enter monthly fee" }]}
-            >
-              <InputNumber
-                placeholder="0"
-                size="large"
-                style={{ width: '100%' }}
-                min={0}
-                formatter={value => `$ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')}
-                parser={value => value.replace(/\$\s?|(,*)/g, '')}
-              />
-            </Form.Item>
-          </Col>
-        </Row>
+        <Form.Item
+          name="email"
+          label={<span style={{ fontWeight: 500 }}>Email</span>}
+          rules={[
+            { required: true, message: "Enter email" },
+            { type: "email", message: "Enter valid email" }
+          ]}
+        >
+          <Input placeholder="admin@company.com" size="large" />
+        </Form.Item>
+
+        {!initialData && (
+          <Form.Item
+            name="password"
+            label={<span style={{ fontWeight: 500 }}>Temporary Password</span>}
+            rules={[{ required: true, message: "Enter temporary password" }]}
+          >
+            <Input.Password placeholder="Enter password" size="large" />
+          </Form.Item>
+        )}
       </Form>
     </Modal>
   );

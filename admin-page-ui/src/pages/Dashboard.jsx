@@ -13,93 +13,14 @@ import { motion } from 'framer-motion';
 import StatCard from '../components/dashboard/StatCard';
 
 import { useDashboard } from '../hooks/useDashboard';
+import { useCompanies } from '../hooks/useCompanies';
 
-// Mock data for companies using your HRMS (Kept for Table as no API provided yet)
-const mockCompanies = [
-  {
-    id: 1,
-    company_name: 'Tech Innovators Inc.',
-    employee_count: 245,
-    subscription_plan: 'Enterprise',
-    status: 'Active',
-    joined_date: '2024-01-15',
-    monthly_fee: 2499,
-    contact_email: 'admin@techinnovators.com',
-  },
-  {
-    id: 2,
-    company_name: 'Digital Solutions Ltd.',
-    employee_count: 89,
-    subscription_plan: 'Premium',
-    status: 'Active',
-    joined_date: '2024-03-22',
-    monthly_fee: 999,
-    contact_email: 'hr@digitalsolutions.com',
-  },
-  {
-    id: 3,
-    company_name: 'StartUp Ventures',
-    employee_count: 25,
-    subscription_plan: 'Basic',
-    status: 'Active',
-    joined_date: '2024-06-10',
-    monthly_fee: 299,
-    contact_email: 'team@startupventures.com',
-  },
-  {
-    id: 4,
-    company_name: 'Global Enterprises',
-    employee_count: 520,
-    subscription_plan: 'Enterprise',
-    status: 'Active',
-    joined_date: '2023-11-05',
-    monthly_fee: 2499,
-    contact_email: 'contact@globalenterprises.com',
-  },
-  {
-    id: 5,
-    company_name: 'Creative Studios',
-    employee_count: 42,
-    subscription_plan: 'Premium',
-    status: 'Active',
-    joined_date: '2024-08-18',
-    monthly_fee: 999,
-    contact_email: 'info@creativestudios.com',
-  },
-  {
-    id: 6,
-    company_name: 'Retail Chain Co.',
-    employee_count: 156,
-    subscription_plan: 'Premium',
-    status: 'Active',
-    joined_date: '2024-02-28',
-    monthly_fee: 999,
-    contact_email: 'hr@retailchain.com',
-  },
-  {
-    id: 7,
-    company_name: 'Finance Corp',
-    employee_count: 78,
-    subscription_plan: 'Basic',
-    status: 'Active',
-    joined_date: '2024-09-12',
-    monthly_fee: 299,
-    contact_email: 'admin@financecorp.com',
-  },
-  {
-    id: 8,
-    company_name: 'Marketing Agency',
-    employee_count: 18,
-    subscription_plan: 'Free',
-    status: 'Trial',
-    joined_date: '2024-11-20',
-    monthly_fee: 0,
-    contact_email: 'hello@marketingagency.com',
-  },
-];
 
 const Dashboard = () => {
-  const { loading, stats: apiStats, growthData, planDistribution } = useDashboard();
+  const { loading: dashboardLoading, stats: apiStats, growthData, planDistribution } = useDashboard();
+  const { companies: backendCompanies, loading: companiesLoading } = useCompanies();
+
+  const loading = dashboardLoading || companiesLoading;
 
   // Calculate statistics (Use API data if available, else 0/loading state)
   const totalCompanies = apiStats?.totalCompanies || 0;
@@ -119,7 +40,7 @@ const Dashboard = () => {
   };
 
   const getStatusColor = (status) => {
-    return status === 'Active' ? 'success' : 'warning';
+    return status?.toLowerCase() === 'active' ? 'success' : 'warning';
   };
 
   // Table columns
@@ -138,13 +59,13 @@ const Dashboard = () => {
       render: (name, record) => (
         <div>
           <div style={{ fontWeight: 600, fontSize: '14px' }}>{name}</div>
-          <div style={{ fontSize: '12px', color: '#64748b' }}>{record.contact_email}</div>
+          <div style={{ fontSize: '12px', color: '#64748b' }}>{record.owner_email}</div>
         </div>
       ),
     },
     {
       title: 'Employees',
-      dataIndex: 'employee_count',
+      dataIndex: 'employees_count',
       width: 120,
       align: 'center',
       render: (count) => (
@@ -152,7 +73,7 @@ const Dashboard = () => {
           {count}
         </div>
       ),
-      sorter: (a, b) => a.employee_count - b.employee_count,
+      sorter: (a, b) => a.employees_count - b.employees_count,
     },
     {
       title: 'Subscription Plan',
@@ -200,7 +121,7 @@ const Dashboard = () => {
       dataIndex: 'joined_date',
       width: 130,
       align: 'center',
-      render: (date) => new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      render: (date) => date,
       sorter: (a, b) => new Date(a.joined_date) - new Date(b.joined_date),
     },
   ];
@@ -211,8 +132,8 @@ const Dashboard = () => {
       value: totalCompanies,
       icon: <TeamOutlined />,
       gradient: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      trend: 'up',
-      trendValue: '+12%',
+      //trend: 'up',
+      //trendValue: '+12%',
       delay: 0,
     },
     {
@@ -220,8 +141,8 @@ const Dashboard = () => {
       value: totalEmployees.toLocaleString(),
       icon: <UserOutlined />,
       gradient: 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
-      trend: 'up',
-      trendValue: '+18%',
+      //trend: 'up',
+      //trendValue: '+18%',
       delay: 0.1,
     },
     {
@@ -229,17 +150,17 @@ const Dashboard = () => {
       value: activeSubscriptions,
       icon: <CheckCircleOutlined />,
       gradient: 'linear-gradient(135deg, #0ba360 0%, #3cba92 100%)',
-      trend: 'up',
-      trendValue: '+8%',
+      //trend: 'up',
+      //trendValue: '+8%',
       delay: 0.2,
     },
     {
       title: 'Monthly Revenue',
-      value: `₹${monthlyRevenue.toLocaleString()}`,
+      value: `₹ ${monthlyRevenue.toLocaleString()}`,
       icon: <DollarOutlined />,
       gradient: 'linear-gradient(135deg, #f83600 0%, #f9d423 100%)',
-      trend: 'up',
-      trendValue: '+23%',
+      //trend: 'up',
+      //trendValue: '+23%',
       delay: 0.3,
     },
   ];
@@ -351,7 +272,8 @@ const Dashboard = () => {
         >
           <Table
             columns={columns}
-            dataSource={mockCompanies}
+            dataSource={backendCompanies}
+            loading={loading}
             rowKey="id"
             pagination={{
               pageSize: 10,

@@ -44,11 +44,6 @@ const CompanyManagement = () => {
     pagination,
     fetchCompanies,
     createCompany,
-    updateCompany,
-    approveCompany,
-    disapproveCompany,
-    suspendCompany,
-    deleteCompany,
     search,
     setSearch,
     statusFilter,
@@ -56,33 +51,22 @@ const CompanyManagement = () => {
   } = useCompanies();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editData, setEditData] = useState(null);
-  const [viewModal, setViewModal] = useState(false);
-  const [selected, setSelected] = useState(null);
 
+  // Filter handlers
   const handleSearch = (value) => {
     setSearch(value);
     fetchCompanies(1, pagination.pageSize, value, statusFilter);
   };
 
-  const handleView = async (id) => {
-    const res = await companiesAPI.getById(id);
-    setSelected(res.data);
-    setViewModal(true);
-  };
-
-  const handleEdit = async (id) => {
-    const res = await companiesAPI.getById(id);
-    setEditData(res.data);
-    setIsModalOpen(true);
-  };
-
   // Calculate statistics
-  const activeCompanies = companies.filter((c) => c.status === "Active").length;
-  const pendingCompanies = companies.filter((c) => c.status === "Pending").length;
-  const totalRevenue = companies
-    .filter((c) => c.status === "Active")
-    .reduce((sum, c) => sum + c.monthly_fee, 0);
+  const activeCompaniesList = companies.filter(
+    (c) => c.status?.toLowerCase() === "active"
+  );
+  const activeCompaniesCount = activeCompaniesList.length;
+  const totalRevenueValue = activeCompaniesList.reduce(
+    (sum, c) => sum + (Number(c.monthly_fee) || 0),
+    0
+  );
 
   // Status colors
   const getStatusColor = (status) => {
@@ -90,6 +74,7 @@ const CompanyManagement = () => {
       Active: "success",
       Pending: "warning",
       Suspended: "error",
+      Inactive: "default",
     };
     return colors[status] || "default";
   };
@@ -99,76 +84,10 @@ const CompanyManagement = () => {
       Enterprise: "purple",
       Premium: "blue",
       Basic: "orange",
-      Free: "default",
+      Free: "green",
     };
     return colors[plan] || "default";
   };
-
-  // Action menu for each row
-  const getActionMenu = (record) => (
-    <Menu>
-      <Menu.Item
-        key="view"
-        icon={<EyeOutlined />}
-        onClick={() => handleView(record.id)}
-      >
-        View Details
-      </Menu.Item>
-      <Menu.Item
-        key="edit"
-        icon={<EditOutlined />}
-        onClick={() => handleEdit(record.id)}
-      >
-        Edit
-      </Menu.Item>
-      <Menu.Divider />
-      {record.status !== "Active" && (
-        <Menu.Item
-          key="approve"
-          icon={<CheckCircleOutlined />}
-          onClick={() => approveCompany(record.id)}
-        >
-          Approve
-        </Menu.Item>
-      )}
-      {record.status === "Active" && (
-        <Menu.Item
-          key="disapprove"
-          icon={<CloseCircleOutlined />}
-          onClick={() => disapproveCompany(record.id)}
-        >
-          Disapprove
-        </Menu.Item>
-      )}
-      {record.status !== "Suspended" && (
-        <Menu.Item
-          key="suspend"
-          icon={<StopOutlined />}
-          onClick={() => suspendCompany(record.id)}
-          danger
-        >
-          Suspend
-        </Menu.Item>
-      )}
-      <Menu.Divider />
-      <Menu.Item
-        key="delete"
-        icon={<DeleteOutlined />}
-        danger
-        onClick={() => {
-          Modal.confirm({
-            title: "Delete Company",
-            content: `Are you sure you want to delete ${record.company_name}?`,
-            okText: "Yes, Delete",
-            okType: "danger",
-            onOk: () => deleteCompany(record.id),
-          });
-        }}
-      >
-        Delete
-      </Menu.Item>
-    </Menu>
-  );
 
   const columns = [
     {
@@ -180,26 +99,28 @@ const CompanyManagement = () => {
         (pagination.current - 1) * pagination.pageSize + index + 1,
     },
     {
-      title: "Company Details",
+      title: "Company",
       dataIndex: "company_name",
-      width: 280,
-      render: (_, record) => (
-        <div>
-          <div style={{ fontWeight: 600, fontSize: "15px", marginBottom: "4px" }}>
-            {record.company_name}
-          </div>
-          <div style={{ fontSize: "12px", color: "#64748b" }}>
-            {record.contact_person} • {record.email}
-          </div>
-          <div style={{ fontSize: "12px", color: "#9ca3af", marginTop: "2px" }}>
-            {record.industry}
-          </div>
+      width: 250,
+      render: (name) => (
+        <div style={{ fontWeight: 600, fontSize: "15px" }}>
+          {name}
+        </div>
+      ),
+    },
+    {
+      title: "Owner",
+      dataIndex: "owner_email",
+      width: 250,
+      render: (email) => (
+        <div style={{ fontSize: "14px", color: "#64748b" }}>
+          {email}
         </div>
       ),
     },
     {
       title: "Employees",
-      dataIndex: "employee_count",
+      dataIndex: "employees_count",
       width: 100,
       align: "center",
       render: (count) => (
@@ -207,7 +128,7 @@ const CompanyManagement = () => {
           {count}
         </div>
       ),
-      sorter: (a, b) => a.employee_count - b.employee_count,
+      sorter: (a, b) => a.employees_count - b.employees_count,
     },
     {
       title: "Plan",
@@ -219,13 +140,6 @@ const CompanyManagement = () => {
           {plan}
         </Tag>
       ),
-      filters: [
-        { text: "Enterprise", value: "Enterprise" },
-        { text: "Premium", value: "Premium" },
-        { text: "Basic", value: "Basic" },
-        { text: "Free", value: "Free" },
-      ],
-      onFilter: (value, record) => record.subscription_plan === value,
     },
     {
       title: "Monthly Fee",
@@ -234,7 +148,7 @@ const CompanyManagement = () => {
       align: "center",
       render: (fee) => (
         <span style={{ fontWeight: 600, color: "#10b981" }}>
-          ${fee.toLocaleString()}
+          ₹{fee.toLocaleString()}
         </span>
       ),
       sorter: (a, b) => a.monthly_fee - b.monthly_fee,
@@ -249,36 +163,14 @@ const CompanyManagement = () => {
           {status}
         </Tag>
       ),
-      filters: [
-        { text: "Active", value: "Active" },
-        { text: "Pending", value: "Pending" },
-        { text: "Suspended", value: "Suspended" },
-      ],
-      onFilter: (value, record) => record.status === value,
     },
     {
-      title: "Registered",
-      dataIndex: "registration_date",
-      width: 120,
+      title: "Joined",
+      dataIndex: "joined_date",
+      width: 150,
       align: "center",
-      render: (date) =>
-        dayjs(date).format("MMM DD, YYYY"),
-      sorter: (a, b) => new Date(a.registration_date) - new Date(b.registration_date),
-    },
-    {
-      title: "Action",
-      align: "center",
-      width: 100,
-      fixed: "right",
-      render: (_, record) => (
-        <Dropdown overlay={getActionMenu(record)} trigger={["click"]}>
-          <Button
-            icon={<MoreOutlined />}
-            style={{ borderRadius: "6px" }}
-          >
-            Actions
-          </Button>
-        </Dropdown>
+      render: (date) => (
+        <span style={{ color: "#64748b" }}>{date}</span>
       ),
     },
   ];
@@ -331,10 +223,10 @@ const CompanyManagement = () => {
               <Statistic
                 title={
                   <span style={{ color: "rgba(255,255,255,0.9)", fontSize: "14px" }}>
-                    Active
+                    Active Plans
                   </span>
                 }
-                value={activeCompanies}
+                value={activeCompaniesCount}
                 prefix={<CheckCircleOutlined />}
                 valueStyle={{ color: "#fff", fontSize: "32px", fontWeight: 700 }}
               />
@@ -361,8 +253,8 @@ const CompanyManagement = () => {
                     Monthly Revenue
                   </span>
                 }
-                value={totalRevenue}
-                prefix="$"
+                value={totalRevenueValue}
+                prefix="₹"
                 valueStyle={{ color: "#fff", fontSize: "32px", fontWeight: 700 }}
               />
             </Card>
@@ -401,7 +293,6 @@ const CompanyManagement = () => {
                 type="primary"
                 icon={<PlusOutlined />}
                 onClick={() => {
-                  setEditData(null);
                   setIsModalOpen(true);
                 }}
                 style={{
@@ -441,88 +332,12 @@ const CompanyManagement = () => {
         </Card>
       </motion.div>
 
-      {/* Add/Edit Modal */}
+      {/* Add Modal */}
       <CompanyModal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={(data) =>
-          editData ? updateCompany(editData.id, data) : createCompany(data)
-        }
-        initialData={editData}
+        onSubmit={(data) => createCompany(data)}
       />
-
-      {/* View Details Modal */}
-      <Modal
-        open={viewModal}
-        title={
-          <div
-            style={{
-              fontSize: "20px",
-              fontWeight: 600,
-              fontFamily: "Poppins, sans-serif",
-            }}
-          >
-            Company Details
-          </div>
-        }
-        onCancel={() => setViewModal(false)}
-        footer={null}
-        width={800}
-      >
-        {selected && (
-          <Descriptions column={2} bordered>
-            <Descriptions.Item label="Company Name" span={2}>
-              <span style={{ fontWeight: 600, fontSize: "16px" }}>
-                {selected.company_name}
-              </span>
-            </Descriptions.Item>
-            <Descriptions.Item label="Contact Person">
-              {selected.contact_person}
-            </Descriptions.Item>
-            <Descriptions.Item label="Email">{selected.email}</Descriptions.Item>
-            <Descriptions.Item label="Phone">{selected.phone}</Descriptions.Item>
-            <Descriptions.Item label="Industry">
-              <Tag color="blue">{selected.industry}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Address" span={2}>
-              {selected.address}
-            </Descriptions.Item>
-            <Descriptions.Item label="Website" span={2}>
-              <a href={`https://${selected.website}`} target="_blank" rel="noopener noreferrer">
-                {selected.website}
-              </a>
-            </Descriptions.Item>
-            <Descriptions.Item label="Employee Count">
-              <span style={{ fontWeight: 600, color: "#667eea" }}>
-                {selected.employee_count}
-              </span>
-            </Descriptions.Item>
-            <Descriptions.Item label="Subscription Plan">
-              <Tag color={getPlanColor(selected.subscription_plan)}>
-                {selected.subscription_plan}
-              </Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Monthly Fee">
-              <span style={{ fontWeight: 600, color: "#10b981" }}>
-                ${selected.monthly_fee.toLocaleString()}
-              </span>
-            </Descriptions.Item>
-            <Descriptions.Item label="Status">
-              <Tag color={getStatusColor(selected.status)} style={{ fontWeight: 500 }}>
-                {selected.status}
-              </Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label="Registration Date">
-              {dayjs(selected.registration_date).format("MMMM DD, YYYY")}
-            </Descriptions.Item>
-            <Descriptions.Item label="Last Login">
-              {selected.last_login
-                ? dayjs(selected.last_login).format("MMMM DD, YYYY")
-                : "Never"}
-            </Descriptions.Item>
-          </Descriptions>
-        )}
-      </Modal>
     </div>
   );
 };

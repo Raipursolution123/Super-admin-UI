@@ -12,7 +12,7 @@ import {
   Row,
   Col,
   Statistic,
-  List,
+  Tooltip
 } from "antd";
 import {
   PlusOutlined,
@@ -23,9 +23,11 @@ import {
   CrownOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
+  KeyOutlined
 } from "@ant-design/icons";
 import { motion } from "framer-motion";
 import PlanModal from "../components/common/PlanModal";
+import PlanPermissionsModal from "../components/common/PlanPermissionsModal";
 import { usePlans } from "../hooks/usePlans";
 import { plansAPI } from "../services/plansService";
 
@@ -34,6 +36,7 @@ const { Search } = Input;
 const PlanManagement = () => {
   const {
     plans,
+    statistics,
     loading,
     pagination,
     fetchPlans,
@@ -45,7 +48,9 @@ const PlanManagement = () => {
   } = usePlans();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isPermModalOpen, setIsPermModalOpen] = useState(false);
   const [editData, setEditData] = useState(null);
+  const [permPlan, setPermPlan] = useState(null);
   const [viewModal, setViewModal] = useState(false);
   const [selected, setSelected] = useState(null);
 
@@ -55,20 +60,36 @@ const PlanManagement = () => {
   };
 
   const handleView = async (id) => {
-    const res = await plansAPI.getById(id);
-    setSelected(res.data);
-    setViewModal(true);
+    try {
+      const res = await plansAPI.getById(id);
+      // The backend `get` returns { "plan": ..., "statistics": ... }
+      setSelected(res.data.plan);
+      setViewModal(true);
+    } catch (error) {
+      console.error("View error", error);
+    }
   };
 
   const handleEdit = async (id) => {
-    const res = await plansAPI.getById(id);
-    setEditData(res.data);
-    setIsModalOpen(true);
+    try {
+      const res = await plansAPI.getById(id);
+      setEditData(res.data.plan);
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error("Edit error", error);
+    }
   };
 
-  // Calculate statistics
-  const activePlans = plans.filter((plan) => plan.is_active).length;
-  const totalRevenue = plans.reduce((sum, plan) => sum + plan.price, 0);
+  const handlePermissions = (plan) => {
+    setPermPlan(plan);
+    setIsPermModalOpen(true);
+  };
+
+  // Use backend statistics if available, otherwise calculate fallback
+  const totalPlans = statistics?.total_plans || plans.length;
+  const activePlansCount = statistics?.active_plans || plans.filter((plan) => plan.is_active).length;
+  // total_value might come as float
+  const totalValue = statistics?.total_value || plans.reduce((sum, plan) => sum + Number(plan.price), 0);
 
   // Plan colors
   const getPlanColor = (planName) => {
@@ -113,7 +134,7 @@ const PlanManagement = () => {
       render: (price, record) => (
         <div>
           <div style={{ fontWeight: 700, fontSize: '18px', color: '#10b981' }}>
-            ${price}
+            ₹{price}
           </div>
           <div style={{ fontSize: '12px', color: '#9ca3af' }}>
             /{record.billing_cycle.toLowerCase()}
@@ -128,19 +149,19 @@ const PlanManagement = () => {
       width: 130,
       align: 'center',
       render: (max) => (
-        <Tag color={max === -1 ? 'purple' : 'blue'} style={{ fontWeight: 500 }}>
-          {max === -1 ? 'Unlimited' : max}
+        <Tag color={max === null || max === -1 ? 'purple' : 'blue'} style={{ fontWeight: 500 }}>
+          {max === null || max === -1 ? 'Unlimited' : max}
         </Tag>
       ),
     },
     {
-      title: 'Features',
-      dataIndex: 'features',
-      width: 100,
+      title: 'Pages Access',
+      dataIndex: 'features_count',
+      width: 120,
       align: 'center',
-      render: (features) => (
+      render: (count) => (
         <Tag color="geekblue" style={{ fontWeight: 500 }}>
-          {features?.length || 0} features
+          {count || 0} Pages
         </Tag>
       ),
     },
@@ -171,14 +192,18 @@ const PlanManagement = () => {
       fixed: 'right',
       render: (_, record) => (
         <Space>
-          <Button
-            size="small"
-            icon={<EyeOutlined />}
-            onClick={() => handleView(record.id)}
-            style={{ borderRadius: '6px' }}
-          >
-            View
-          </Button>
+          <Tooltip title="Manage Permissions">
+            <Button
+              size="small"
+              icon={<KeyOutlined />}
+              onClick={() => handlePermissions(record)}
+              style={{
+                borderRadius: '6px',
+                color: '#faad14',
+                borderColor: '#faad14'
+              }}
+            />
+          </Tooltip>
           <Button
             size="small"
             icon={<EditOutlined />}
@@ -230,7 +255,7 @@ const PlanManagement = () => {
             >
               <Statistic
                 title={<span style={{ color: 'rgba(255,255,255,0.9)', fontSize: '14px' }}>Total Plans</span>}
-                value={plans.length}
+                value={totalPlans}
                 prefix={<CrownOutlined />}
                 valueStyle={{ color: '#fff', fontSize: '32px', fontWeight: 700 }}
               />
@@ -253,7 +278,7 @@ const PlanManagement = () => {
             >
               <Statistic
                 title={<span style={{ color: 'rgba(255,255,255,0.9)', fontSize: '14px' }}>Active Plans</span>}
-                value={activePlans}
+                value={activePlansCount}
                 prefix={<CheckCircleOutlined />}
                 valueStyle={{ color: '#fff', fontSize: '32px', fontWeight: 700 }}
               />
@@ -276,9 +301,10 @@ const PlanManagement = () => {
             >
               <Statistic
                 title={<span style={{ color: 'rgba(255,255,255,0.9)', fontSize: '14px' }}>Total Value</span>}
-                value={totalRevenue}
-                prefix="$"
+                value={totalValue}
+                prefix="₹"
                 valueStyle={{ color: '#fff', fontSize: '32px', fontWeight: 700 }}
+                precision={2}
               />
             </Card>
           </motion.div>
@@ -363,6 +389,14 @@ const PlanManagement = () => {
         initialData={editData}
       />
 
+      {/* Permissions Modal */}
+      <PlanPermissionsModal
+        open={isPermModalOpen}
+        onClose={() => setIsPermModalOpen(false)}
+        plan={permPlan}
+        onSuccess={() => fetchPlans(pagination.current, pagination.pageSize, search)}
+      />
+
       {/* View Modal */}
       <Modal
         open={viewModal}
@@ -405,8 +439,8 @@ const PlanManagement = () => {
                 {selected.billing_cycle}
               </Descriptions.Item>
               <Descriptions.Item label="Max Employees">
-                <Tag color={selected.max_employees === -1 ? 'purple' : 'blue'}>
-                  {selected.max_employees === -1 ? 'Unlimited' : selected.max_employees}
+                <Tag color={selected.max_employees === null || selected.max_employees === -1 ? 'purple' : 'blue'}>
+                  {selected.max_employees === null || selected.max_employees === -1 ? 'Unlimited' : selected.max_employees}
                 </Tag>
               </Descriptions.Item>
               <Descriptions.Item label="Status">
@@ -417,17 +451,19 @@ const PlanManagement = () => {
                   {selected.is_active ? 'Active' : 'Inactive'}
                 </Tag>
               </Descriptions.Item>
-              <Descriptions.Item label="Features" span={2}>
-                <List
-                  size="small"
-                  dataSource={selected.features}
-                  renderItem={(item) => (
-                    <List.Item>
-                      <CheckCircleOutlined style={{ color: '#10b981', marginRight: '8px' }} />
-                      {item}
-                    </List.Item>
-                  )}
-                />
+              <Descriptions.Item label="Pages Assigned" span={2}>
+                <Tag color="geekblue" style={{ fontSize: '14px', padding: '4px 10px' }}>
+                  {selected.features_count || (selected.available_pages ? selected.available_pages.length : 0)} Pages Accessible
+                </Tag>
+                <Button
+                  type="link"
+                  onClick={() => {
+                    setViewModal(false);
+                    handlePermissions(selected);
+                  }}
+                >
+                  Manage Assigned Pages
+                </Button>
               </Descriptions.Item>
             </Descriptions>
           </>

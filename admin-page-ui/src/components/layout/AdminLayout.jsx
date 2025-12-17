@@ -91,11 +91,7 @@ const AdminLayout = () => {
       icon: <MailOutlined />,
       label: 'Email Settings',
     },
-    {
-      key: '/menu5',
-      icon: <AppstoreOutlined />,
-      label: 'Menu Item 5',
-    },
+    
   ];
 
   const handleMenuClick = ({ key }) => {
@@ -325,7 +321,7 @@ const AdminLayout = () => {
 
           <Space size="middle">
             <ThemeToggle />
-            <NotificationCenter />
+            {/* <NotificationCenter /> */}
             <Dropdown
               menu={{ items: userMenuItems }}
               placement="bottomRight"

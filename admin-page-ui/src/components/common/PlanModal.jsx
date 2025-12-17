@@ -5,9 +5,11 @@ const { TextArea } = Input;
 const { Option } = Select;
 
 const billingCycleOptions = [
-  { label: "Monthly", value: "Monthly" },
-  { label: "Yearly", value: "Yearly" },
+  { label: "Monthly", value: "MONTHLY" },
+  { label: "Yearly", value: "YEARLY" },
 ];
+
+const planNameOptions = ["Free", "Basic", "Premium", "Enterprise"];
 
 const PlanModal = ({ open, onClose, onSubmit, initialData }) => {
   const [form] = Form.useForm();
@@ -20,8 +22,7 @@ const PlanModal = ({ open, onClose, onSubmit, initialData }) => {
         description: initialData.description,
         price: initialData.price,
         billing_cycle: initialData.billing_cycle,
-        max_employees: initialData.max_employees === -1 ? null : initialData.max_employees,
-        features: initialData.features,
+        max_employees: initialData.max_employees === null ? null : initialData.max_employees,
         is_active: initialData.is_active,
       });
     } else {
@@ -37,17 +38,18 @@ const PlanModal = ({ open, onClose, onSubmit, initialData }) => {
         description: values.description,
         price: values.price || 0,
         billing_cycle: values.billing_cycle,
-        max_employees: values.max_employees || -1, // -1 means unlimited
-        features: values.features || [],
+        max_employees: values.max_employees || null, // null for unlimited
         is_active: values.is_active !== undefined ? values.is_active : true,
       };
       setSaving(true);
-      await onSubmit(payload);
-      onClose();
-      form.resetFields();
+      const success = await onSubmit(payload);
+      setSaving(false);
+      if (success) {
+        onClose();
+        form.resetFields();
+      }
     } catch (error) {
       console.error(error);
-    } finally {
       setSaving(false);
     }
   };
@@ -80,9 +82,15 @@ const PlanModal = ({ open, onClose, onSubmit, initialData }) => {
             <Form.Item
               name="plan_name"
               label={<span style={{ fontWeight: 500 }}>Plan Name</span>}
-              rules={[{ required: true, message: "Enter plan name" }]}
+              rules={[{ required: true, message: "Select plan name" }]}
             >
-              <Input placeholder="e.g. Premium" size="large" />
+              <Select placeholder="Select Plan Type" size="large">
+                {planNameOptions.map((name) => (
+                  <Option key={name} value={name}>
+                    {name}
+                  </Option>
+                ))}
+              </Select>
             </Form.Item>
           </Col>
           <Col xs={24} md={12}>
@@ -114,7 +122,7 @@ const PlanModal = ({ open, onClose, onSubmit, initialData }) => {
           <Col xs={24} md={12}>
             <Form.Item
               name="price"
-              label={<span style={{ fontWeight: 500 }}>Price ($)</span>}
+              label={<span style={{ fontWeight: 500 }}>Price</span>}
               rules={[{ required: true, message: "Enter price" }]}
             >
               <InputNumber
@@ -144,21 +152,10 @@ const PlanModal = ({ open, onClose, onSubmit, initialData }) => {
         </Row>
 
         <Form.Item
-          name="features"
-          label={<span style={{ fontWeight: 500 }}>Features</span>}
-          rules={[{ required: true, message: "Add at least one feature" }]}
-        >
-          <Select
-            mode="tags"
-            placeholder="Add features (press Enter after each)"
-            size="large"
-          />
-        </Form.Item>
-
-        <Form.Item
           name="is_active"
           label={<span style={{ fontWeight: 500 }}>Active Status</span>}
           valuePropName="checked"
+          initialValue={true}
         >
           <Switch checkedChildren="Active" unCheckedChildren="Inactive" />
         </Form.Item>

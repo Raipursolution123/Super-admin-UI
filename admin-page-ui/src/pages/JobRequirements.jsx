@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+/*import React, { useState } from "react";
 import {
   Card,
   Table,
@@ -217,7 +217,7 @@ const JobRequirements = () => {
 
   return (
     <div>
-      {/* Statistics Cards */}
+      
       <Row gutter={[16, 16]} style={{ marginBottom: '24px' }}>
         <Col xs={24} sm={8}>
           <motion.div
@@ -290,7 +290,7 @@ const JobRequirements = () => {
         </Col>
       </Row>
 
-      {/* Main Table Card */}
+      
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -359,7 +359,7 @@ const JobRequirements = () => {
         </Card>
       </motion.div>
 
-      {/* Create/Edit Modal */}
+      
       <JobRequirementsModal
         open={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -371,7 +371,7 @@ const JobRequirements = () => {
         initialData={editData}
       />
 
-      {/* View Modal */}
+      
       <Modal
         open={viewModal}
         title={
@@ -453,3 +453,13 @@ const JobRequirements = () => {
 };
 
 export default JobRequirements;
+*/
+import React from 'react'
+
+const JobRequirements = () => {
+  return (
+    <div>Coming Soon....</div>
+  )
+}
+
+export default JobRequirements

@@ -20,8 +20,10 @@ export const useCompanies = () => {
       if (status) params.status = status;
 
       const res = await companiesAPI.getAll(params);
-      const results = res.data?.results || res.data || [];
-      const total = res.data?.count ?? results.length;
+      // Backend response: { companies: [...], total_count: N }
+      const results = res.data?.companies || [];
+      const total = res.data?.total_count || 0;
+
       setCompanies(results);
       setPagination({ current: page, pageSize, total });
     } catch (error) {
@@ -36,64 +38,12 @@ export const useCompanies = () => {
     try {
       await companiesAPI.create(data);
       message.success("Company added successfully");
+      // Refresh list
       fetchCompanies(pagination.current, pagination.pageSize, search, statusFilter);
     } catch (error) {
-      message.error("Failed to add company");
-      console.error(error);
-    }
-  };
-
-  const updateCompany = async (id, data) => {
-    try {
-      await companiesAPI.update(id, data);
-      message.success("Company updated successfully");
-      fetchCompanies(pagination.current, pagination.pageSize, search, statusFilter);
-    } catch (error) {
-      message.error("Failed to update company");
-      console.error(error);
-    }
-  };
-
-  const approveCompany = async (id) => {
-    try {
-      await companiesAPI.approve(id);
-      message.success("Company approved successfully");
-      fetchCompanies(pagination.current, pagination.pageSize, search, statusFilter);
-    } catch (error) {
-      message.error("Failed to approve company");
-      console.error(error);
-    }
-  };
-
-  const disapproveCompany = async (id) => {
-    try {
-      await companiesAPI.disapprove(id);
-      message.success("Company disapproved");
-      fetchCompanies(pagination.current, pagination.pageSize, search, statusFilter);
-    } catch (error) {
-      message.error("Failed to disapprove company");
-      console.error(error);
-    }
-  };
-
-  const suspendCompany = async (id) => {
-    try {
-      await companiesAPI.suspend(id);
-      message.success("Company suspended");
-      fetchCompanies(pagination.current, pagination.pageSize, search, statusFilter);
-    } catch (error) {
-      message.error("Failed to suspend company");
-      console.error(error);
-    }
-  };
-
-  const deleteCompany = async (id) => {
-    try {
-      await companiesAPI.delete(id);
-      message.success("Company deleted successfully");
-      fetchCompanies(pagination.current, pagination.pageSize, search, statusFilter);
-    } catch (error) {
-      message.error("Failed to delete company");
+      // Backend returns error object, try to show specific message
+      const errorMsg = error.response?.data?.error || "Failed to add company";
+      message.error(errorMsg);
       console.error(error);
     }
   };
@@ -109,11 +59,6 @@ export const useCompanies = () => {
     setPagination,
     fetchCompanies,
     createCompany,
-    updateCompany,
-    approveCompany,
-    disapproveCompany,
-    suspendCompany,
-    deleteCompany,
     search,
     setSearch,
     statusFilter,
