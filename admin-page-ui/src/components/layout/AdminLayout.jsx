@@ -22,6 +22,7 @@ import {
   TeamOutlined,
   FileTextOutlined,
   SettingOutlined,
+  SendOutlined,
   CrownOutlined,
   MailOutlined
 } from '@ant-design/icons';
@@ -91,7 +92,11 @@ const AdminLayout = () => {
       icon: <MailOutlined />,
       label: 'Email Settings',
     },
-
+    {
+      key: '/support-tickets',
+      icon: <SendOutlined />,
+      label: 'Support Tickets',
+    },
   ];
 
   const handleMenuClick = ({ key }) => {

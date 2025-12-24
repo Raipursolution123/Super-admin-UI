@@ -8,9 +8,10 @@ import JobRequirements from './pages/JobRequirements';
 import PlanManagement from './pages/PlanManagement';
 import CompanyManagement from './pages/CompanyManagement';
 import EmailSettings from './pages/EmailSettings';
+import SupportTickets from './pages/SupportTickets';
 
 // Placeholder components
-const Menu5 = () => <h2>Menu Item 5 Content</h2>;
+//const Menu5 = () => <h2>Menu Item 5 Content</h2>;
 const Profile = () => <h2>User Profile</h2>;
 
 const AuthHandler = () => {
@@ -47,7 +48,7 @@ function App() {
             <Route path="plan-management" element={<PlanManagement />} />
             <Route path="company-management" element={<CompanyManagement />} />
             <Route path="email-settings" element={<EmailSettings />} />
-            <Route path="menu5" element={<Menu5 />} />
+            <Route path="support-tickets" element={<SupportTickets />} />
             <Route path="profile" element={<Profile />} />
           </Route>
         </Route>

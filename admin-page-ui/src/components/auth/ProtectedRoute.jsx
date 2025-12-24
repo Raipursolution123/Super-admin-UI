@@ -11,7 +11,7 @@ const ProtectedRoute = () => {
 
   if (!isAuthenticated && !hasTokenInUrl) {
 
-    return <Navigate to="/login" replace />;
+    return window.location.replace('http://localhost:3000/login?logout=true');
   }
 
   return <Outlet />;
