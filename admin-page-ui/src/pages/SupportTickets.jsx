@@ -88,7 +88,7 @@ const SupportTickets = () => {
       width: 120,
     },
     {
-      title: 'Problem Title',
+      title: 'Issue Title',
       dataIndex: 'problem_title',
       key: 'problem_title',
       width: 180,
