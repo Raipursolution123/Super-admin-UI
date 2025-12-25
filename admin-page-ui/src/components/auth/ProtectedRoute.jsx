@@ -11,7 +11,7 @@ const ProtectedRoute = () => {
 
   if (!isAuthenticated && !hasTokenInUrl) {
 
-    return window.location.replace('http://localhost:3000/login?logout=true');
+    return window.location.replace('http://hrms.raipursolutions.com/login?logout=true');
   }
 
   return <Outlet />;

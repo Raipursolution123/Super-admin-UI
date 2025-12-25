@@ -1,51 +1,86 @@
 import API from './api';
 
-// Demo data for initial implementation
-const demoTickets = [
-  {
-    id: 1,
-    name: 'Arka',
-    email: 'arka@example.com',
-    raised_date: '2025-12-20',
-    problem_title: 'Login Issue',
-    problem_description: 'Unable to login to the dashboard.',
-    problem_query: 'I keep getting a "Wrong Credentials" error even though they are correct.',
-    attachments: [],
-    status: 'In Progress',
-  },
-  {
-    id: 2,
-    name: 'John Doe',
-    email: 'john@example.com',
-    raised_date: '2025-12-22',
-    problem_title: 'App Slowdown',
-    problem_description: 'The app is very slow during peak hours.',
-    problem_query: 'Does the application have any performance issues recently?',
-    attachments: [],
-    status: 'Solved',
+// Map backend status values to frontend display format
+const mapStatusToFrontend = (backendStatus) => {
+  const statusMap = {
+    'PENDING': 'Pending',
+    'IN_PROGRESS': 'In Progress',
+    'SOLVED': 'Solved',
+    'CLOSED': 'Closed'
+  };
+  return statusMap[backendStatus] || backendStatus;
+};
+
+// Map frontend status values to backend format
+const mapStatusToBackend = (frontendStatus) => {
+  const statusMap = {
+    'Pending': 'PENDING',
+    'In Progress': 'IN_PROGRESS',
+    'Solved': 'SOLVED',
+    'Closed': 'CLOSED'
+  };
+  return statusMap[frontendStatus] || frontendStatus;
+};
+
+// Format date from backend to frontend format
+const formatDate = (dateString) => {
+  if (!dateString) return '';
+  try {
+    const date = new Date(dateString);
+    return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD format
+  } catch (error) {
+    return dateString;
   }
-];
+};
 
 export const ticketsAPI = {
   fetchTickets: async () => {
-    // Simulating API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ data: demoTickets });
-      }, 500);
-    });
-    // Final implementation would be:
-    // return API.get('/support-tickets/');
+    try {
+      const response = await API.get('/superadmin/support-tickets/');
+      
+      // Backend returns: { results: [...], stats: {...}, count, page, etc. }
+      // Frontend expects: { data: [...] }
+      const tickets = response.data.results || [];
+      
+      // Map backend data to frontend format
+      const mappedTickets = tickets.map(ticket => ({
+        id: ticket.id,
+        name: ticket.name,
+        email: ticket.email,
+        raised_date: formatDate(ticket.raised_date),
+        problem_title: ticket.problem_title,
+        problem_description: ticket.problem_description,
+        problem_query: ticket.problem_query,
+        attachments: ticket.attachments || [],
+        status: mapStatusToFrontend(ticket.status),
+        // Include additional fields if needed
+        updated_date: formatDate(ticket.updated_date),
+        solved_date: formatDate(ticket.solved_date),
+        admin_response: ticket.admin_response,
+        responded_by_name: ticket.responded_by_name,
+        user_email: ticket.user_email
+      }));
+      
+      return { data: mappedTickets };
+    } catch (error) {
+      console.error('Error fetching tickets:', error);
+      throw error;
+    }
   },
 
   updateTicketStatus: async (ticketId, status) => {
-    // Simulating API call
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ data: { message: 'Status updated successfully' } });
-      }, 500);
-    });
-    // Final implementation would be:
-    // return API.patch(`/support-tickets/${ticketId}/`, { status });
+    try {
+      // Map frontend status to backend format
+      const backendStatus = mapStatusToBackend(status);
+      
+      const response = await API.patch(`/superadmin/support-tickets/${ticketId}/`, {
+        status: backendStatus
+      });
+      
+      return response.data;
+    } catch (error) {
+      console.error('Error updating ticket status:', error);
+      throw error;
+    }
   }
 };

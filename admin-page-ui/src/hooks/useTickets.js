@@ -28,13 +28,18 @@ export const useTickets = () => {
     setLoading(true);
     try {
       await ticketsAPI.updateTicketStatus(ticketId, newStatus);
-      // Update local state after successful simulation
+      // Update local state after successful update
       setTickets(prev => prev.map(t => t.id === ticketId ? { ...t, status: newStatus } : t));
       message.success('Ticket status updated successfully');
+      // Optionally refresh the list to get latest data from server
+      // await fetchTickets();
       return true;
     } catch (error) {
       console.error('Error updating status:', error);
-      message.error('Failed to update ticket status');
+      const errorMessage = error.response?.data?.error || 
+                          error.response?.data?.message || 
+                          'Failed to update ticket status';
+      message.error(errorMessage);
       return false;
     } finally {
       setLoading(false);

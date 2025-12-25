@@ -9,6 +9,7 @@ import PlanManagement from './pages/PlanManagement';
 import CompanyManagement from './pages/CompanyManagement';
 import EmailSettings from './pages/EmailSettings';
 import SupportTickets from './pages/SupportTickets';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 // Placeholder components
 //const Menu5 = () => <h2>Menu Item 5 Content</h2>;
@@ -33,8 +34,6 @@ const AuthHandler = () => {
 
   return null;
 };
-
-import ProtectedRoute from './components/auth/ProtectedRoute';
 
 function App() {
   return (
