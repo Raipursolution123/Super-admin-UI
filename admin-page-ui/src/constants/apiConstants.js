@@ -1,5 +1,16 @@
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
+// HRMS UI URL (for redirects after logout)
+// Check runtime environment (more reliable than build-time PROD)
+const isProduction = typeof window !== 'undefined' && 
+  (window.location.hostname === 'hrmssuperadmin.raipursolutions.com' || 
+   window.location.hostname.includes('raipursolutions.com'));
+
+export const HRMS_UI_URL = import.meta.env.VITE_HRMS_UI_URL || 
+  (isProduction 
+    ? 'https://hrms.raipursolutions.com' 
+    : 'http://localhost:3000');
+
 export const API_TIMEOUT = 10000;
 
 export const HTTP_STATUS = {

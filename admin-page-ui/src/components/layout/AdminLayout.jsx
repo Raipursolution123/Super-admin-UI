@@ -37,6 +37,7 @@ const { useBreakpoint } = Grid;
 
 import { useSelector, useDispatch } from 'react-redux';
 import { logout } from '../../store/slices/authSlice';
+import { HRMS_UI_URL } from '../../constants/apiConstants';
 
 
 const AdminLayout = () => {
@@ -109,7 +110,7 @@ const AdminLayout = () => {
   const handleLogout = () => {
     dispatch(logout());
     // Redirect to main HRMS login with a logout flag to clear its state
-    window.location.href = 'http://localhost:3000/login?logout=true';
+    window.location.href = `${HRMS_UI_URL}/login?logout=true`;
   };
 
   const userMenuItems = [
