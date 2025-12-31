@@ -88,11 +88,11 @@ const AdminLayout = () => {
       icon: <TeamOutlined />,
       label: 'Company Details',
     },
-    {
+    /*{
       key: '/email-settings',
       icon: <MailOutlined />,
       label: 'Email Settings',
-    },
+    },*/
     {
       key: '/support-tickets',
       icon: <SendOutlined />,
